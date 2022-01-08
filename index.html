@@ -263,337 +263,231 @@ function reader_ReadFileAsBinaryString(file, options) {
 
 <script type="text/javascript">
 
-const newObj = () => {
-  return {
-    _types: [],
-    _history: ["created"],
-    _children: [],
-    _strings: [],
-    _parent: null,
-  };
-};
+
 
 async function parseHowNetDEF(defTxt) {
-  let stringTemp = "";
-  const actionForLeftCurlyBracket = (currentObj)=>{
-    // 一般情况
-    currentObj._history.push("find `{` >>> SEM");
-    currentObj._type = "SEM";
-    currentObj._history.push("  SEM created");
-    //
-    if (stringTemp.length) {
-      currentObj._parent._strings.push(stringTemp);
-      currentObj._parent._history.push(`  STRANGE ::: unsolved string 【${stringTemp}】 pushed`);
-      stringTemp = "";
+  const newObj = () => {
+    return {
+      _tag: "UNK",
+      _parent: null,
+      _children: [],
+      //
+      // _tags: [],
+      // _stack: [],
+      // _history: ["created"],
     };
-    return currentObj;
-  };
-  const actionForRightCurlyBracket = (currentObj)=>{
-    currentObj._type = "SEM";
-    if (stringTemp.length) {
-      currentObj._strings.push(stringTemp);
-      if (currentObj._children.length==0) {
-        currentObj.name = stringTemp;
-        currentObj._history.push("  named");
-      };
-      currentObj._history.push(`  push string 【${stringTemp}】`);
-      stringTemp = "";
-    };
-    currentObj._parent._children.push(currentObj);
-    currentObj._parent._history.push("  push child SEM");
-    currentObj._history.push("go _parent");
-    currentObj._parent._history.push("from child");
-    return currentObj._parent;
-  };
-  const normalAction = (char)=>{
-    stringTemp = `${stringTemp}${char}`;
   };
   const actions = {
-    // '|': (currentObj)=>{
-    //   // 当前是《进行中的》「SEM.name」，
-    //   // 上一位是「SEM.name_E」，
-    //   // 下一位是「SEM.name_C」，
-    //   //   期待「:」或「}」
-    //   //
-    //   //
-    //   // 当前是《进行中的》「SEM.name」，
-    //   currentObj._history.push("find `|`");
-    //   currentObj._types.push("SEM");
-    //   currentObj._history.push("  type SEM got");
-    //   //
-    //   // 上一位是「SEM.name_E」，
-    //   currentObj.name_E = stringTemp;
-    //   currentObj._history.push("  SEM.name_E got");
-    //   stringTemp = "";
-    //   //
-    //   // 下一位是「SEM.name_C」，
-    //   //   期待「:」或「}」
-    //   //
-    //   currentObj._history.push("pass `|`, go on, seek `:` or `}`");
-    //   return currentObj;
-    // },
-
-    '=': (currentObj)=>{
-      // 前面处理了「:」或「,」，积累了一些「stack」未处理，级别停留在某个含有此「ATTR」的父级「SEM」
+    '{': (parentNode, stackWrap) => {
       //
+      // parentNode._history.push(`meet \`{\``);
       //
-      // 前面处理了「:」或「,」，积累了一些「stack」未处理，级别停留在某个含有此「ATTR」的父级「SEM」
-      currentObj._history.push("find `=`, go child ATTR");
-      let child = newObj();
-      currentObj._children.push(child);
-
-      child._parent = currentObj;
-      child._history.push("after `=`");
-      child._types.push("ATTR");
-      child._history.push("  type ATTR got");
-
-      child.key = stringTemp;
-      child._history.push(`  ATTR.key got 【${stringTemp}】`);
-      stringTemp = "";
-
-      return child;
-      // 下一个符号是必定是「{」，它会自行创建子节点，对此函数来说是孙子节点。
+      let currentNode = newObj();
+      currentNode._parent = parentNode;
+      parentNode._children.push(currentNode);
+      //
+      currentNode._tag = "SEM";
+      // currentNode._tags.push("SEM");
+      //
+      if (stackWrap.string.length) {
+        // currentNode._stack.push(stackWrap.string);
+        stackWrap.string = "";
+      }
+      //
+      return currentNode;
     },
 
-    ':': (currentObj)=>{
-      // 前面处理了「{」，积累了一些「stack」未处理，级别停留在当前「SEM」
-      // 未处理的「stack」是「SEM.name_C」，
+    '}': (currentNode, stackWrap) => {
       //
-      // 当前是《进行中的》「SEM」，
-      // 上一位是「SEM.name_C」，
-      // 下一位是「{」或「ATTR.key」，
-      //   期待「|」或「=」
+      // currentNode._history.push(`meet \`}\``);
       //
+      if (stackWrap.string.length) {
+        currentNode.refLabel = stackWrap.string;
+        // currentNode._stack.push(stackWrap.string);
+        stackWrap.string = "";
+      }
       //
-      // 前面处理了「{」，积累了一些「stack」未处理，级别停留在当前「SEM」
-      currentObj._history.push("find `:`");
-      currentObj._types.push("SEM");
-      currentObj._history.push("  type SEM got");
+      let parentNode = currentNode._parent;
       //
-      // 未处理的「stack」是「SEM.name_C」，
-      currentObj.name_C = stringTemp;
-      currentObj._history.push(`  SEM.name_C got 【${stringTemp}】`);
-      stringTemp = "";
-      currentObj.name = `${currentObj.name_E}|${currentObj.name_C}`;
-      currentObj._history.push(`  SEM.name got 【${currentObj.name}】`);
+      if (currentNode._tag == "LINK") {
+        return parentNode._parent;
+      }
       //
-      // 下一位是「{」或「ATTR.key」，
-      //   期待「|」或「=」
-      let child = newObj();
-      child._parent = currentObj;
-      child._history.push("after `:` -> this is SEM or ATTR.key");
-      currentObj._children.push(child);
-      //
-      currentObj._history.push("pass `:`, go child");
-      return child;
+      return parentNode;
     },
 
-    '}': (currentObj)=>{
-      // 当前是《进行中的》「SEM」，
-      // 上一位是「SEM.name_C」或「}」，
-      // 下一位是「}」或「,」或「;」或「{」
+    '"': (currentNode, stackWrap) => {
       //
+      // currentNode._history.push(`meet \`"\``);
       //
-      // 当前是《进行中的》「SEM」，
-      currentObj._history.push("find `}` >>> SEM");
-      currentObj._types.push("SEM");
-      currentObj._history.push("  type SEM got");
-      //
-      // 上一位是「SEM.name_C」或「}」，
-      if (stringTemp.length) {
-        currentObj.name_C = stringTemp;
-        currentObj._history.push("  SEM.name_C got");
-        stringTemp = "";
-      };
-      //
-      // 下一位是「}」或「,」或「;」或「{」
-      //   「}」回到父节点；意味着父节点是「SEM」且也将迎来终结
-      //   「,」回到父节点；如果父节点是「SEM」那么后面期待一个新的兄弟节点「SEM」
-      //   「,」回到父节点；如果父节点是「ATTR」那么后面期待一个新的兄弟节点「SEM」或是一个新的叔叔节点「ATTR」
-      //   「;」回到父节点；后面期待创建一个新的兄弟节点「SEM」
-      //   「{」回到父节点；后面创建一个新的兄弟节点「SEM」
-      //
-      currentObj._history.push("pass `}`, SEM end, go parent");
-      return currentObj._parent;
-      //   「}」意味着自己是「SEM」且将迎来终结
-      //   「,」如果是「SEM」那么后面期待一个新的子节点「SEM」
-      //   「,」如果是「ATTR」那么后面期待一个新的子节点「SEM」或是一个新的兄弟节点「ATTR」
-      //   「;」后面期待创建一个新的子节点「SEM」
-      //   「{」后面创建一个新的子节点「SEM」
-    },
-
-
-
-    ',': (currentObj)=>{
-      // 当前是《进行中的》「SEM」或「ATTR」，
-      // 上一位是「}」，
-      // 下一位是「{」或「ATTR.key」，
-      //   前者期待「|」，后者期待「=」
-      //
-      //
-      // 当前是《进行中的》「SEM」或「ATTR」，
-      let currentType;
-      if (currentObj._types.includes("ATTR")) {
-        currentType = "ATTR";
-      } else if (currentObj._types.includes("SEM")) {
-        currentType = "SEM";
-      };
-      //
-      // 上一位是「}」，
-      //
-      // 下一位是「{」或「ATTR.key」，
-      //   前者期待「|」，后者期待「=」
-      //
-      //
-      //
-      //
-      //
-      //
-      //
-      //
-      // 前面是 属性键值对 或 义元 结束，后面是 属性键值对 或 义元 开始。
-      currentObj._history.push("find `,`");
-      if (stringTemp.length) {
-        currentObj._strings.push(stringTemp);
-        currentObj._history.push(`  push string 【${stringTemp}】 ::: STRANGE ::: strange string before \`,\``);
-        stringTemp = "";
-      };
-      if (currentObj._parent?._type=="ATTR") {} else {};
-      //
-      //
-      currentObj._history.push("  wait new child");
-      let child = newObj();
-      child._parent = currentObj;
-      child._history.push("from parent");
-      currentObj._history.push("go child");
-      return child;
-    },
-
-
-
-    '{': (currentObj)=>{
-      // 当前是《新的》「SEM」，
-      // 上一位是「BEGINNING」或「:」或「=」或「,」或「;」或「}」，
-      // 下一位是「SEM.name_E」或「ATTR.key」，
-      //   期待「|」或「=」
-      //
-      //
-      // 当前是《新的》「SEM」，
-      currentObj._history.push("find `{` >>> SEM");
-      currentObj._types.push("SEM");
-      currentObj._history.push("  type SEM got");
-      // 上一位是「BEGINNING」或「:」或「=」或「,」或「;」或「}」，
-      // 下一位是「SEM.name_E」或「ATTR.key」，
-      //   期待「|」或「=」
-      //
-      //
-      //
-      // 开始刻画一个 义元，后面是 属性键值对 或 义元 开始。
-      // 如果前面连着一个另一个以 `}` 结尾的义元
-      if (currentObj._history.slice(currentObj._history.length-2)[0]==("  push child SEM")) {
-        let _parent = currentObj;
-        currentObj = newObj();
-        currentObj._parent = _parent;
-      };
-      // 一般情况
-      return actionForLeftCurlyBracket(currentObj);
-    },
-    '}': (currentObj)=>{
-      // 当前是《进行中的》「SEM」，
-      // 上一位是「SEM.name_C」或「}」，
-      // 下一位是「}」或「,」或「;」或「{」
-      //
-      // 结束刻画一个 义元
-      currentObj._history.push("find `}` >>> SEM");
-      return actionForRightCurlyBracket(currentObj);
-    },
-    ',': (currentObj)=>{
-      // 当前是《进行中的》「SEM」，
-      // 上一位是「}」，
-      // 下一位是「{」或「ATTR.key」，
-      //   前者期待「|」，后者期待「=」
-      //
-      // 前面是 属性键值对 或 义元 结束，后面是 属性键值对 或 义元 开始。
-      currentObj._history.push("find `,`");
-      if (stringTemp.length) {
-        currentObj._strings.push(stringTemp);
-        currentObj._history.push(`  push string 【${stringTemp}】 ::: STRANGE ::: strange string before \`,\``);
-        stringTemp = "";
-      };
-      if (currentObj._parent?._type=="ATTR") {} else {};
-      //
-      //
-      currentObj._history.push("  wait new child");
-      let child = newObj();
-      child._parent = currentObj;
-      child._history.push("from parent");
-      currentObj._history.push("go child");
-      return child;
-    },
-    ';': (currentObj)=>{
-      // 当前是《进行中的》「WRAP」，
-      // 上一位是「}」，
-      // 下一位是「{」
-      //
-      // 前面是 义元 结束，后面是 属性键值对 或 义元 开始。
-      currentObj._history.push("find `;`");
-      if (stringTemp.length) {
-        currentObj._strings.push(stringTemp);
-        currentObj._history.push(`  push string 【${stringTemp}】 ::: STRANGE ::: strange string before \`;\``);
-        stringTemp = "";
-      };
-      currentObj._history.push("  last child >>> SEM");
-      currentObj._history.push("  wait new child ::: SEM");
-      let child = newObj();
-      child._parent = currentObj;
-      child._history.push("from parent");
-      currentObj._history.push("go child");
-      return child;
-    },
-    '"': (currentObj)=>{
-      // 当前是《新的》或《进行中的》「SEM」，
-      // 作为「{」，
-      //   当前是《新的》「SEM」，
-      //   上一位是「ROOT_WRAP」或「:」或「=」或「,」或「;」或「}」，
-      //   下一位是「SEM.name_E」或「ATTR.key」，
-      //     期待「|」或「=」
-      // 作为「}」，
-      //   当前是《进行中的》「SEM」，
-      //   上一位是「SEM.name_E」，
-      //   下一位是「SEM.name_C」，
-      //     期待「:」或「}」
-      //
-      //
-      // 义元 结束 或者 开始
-      currentObj._history.push("find `\"` >>> SEM");
-      if (!stringTemp.length) {
-        currentObj._history.push("find `\"` as `}`");
-        return actionForRightCurlyBracket(currentObj);
+      if (stackWrap.string.length) {
+        //
+        currentNode.refLabel = stackWrap.string;
+        // currentNode._stack.push(stackWrap.string);
+        stackWrap.string = "";
+        //
+        let parentNode = currentNode._parent;
+        //
+        return parentNode;
       } else {
-        currentObj._history.push("find `\"` as `{`");
-        return actionForLeftCurlyBracket(currentObj);
-      };
+        //
+        let childNode = newObj();
+        childNode._parent = currentNode;
+        currentNode._children.push(childNode);
+        //
+        childNode._tag = "SEM_YH";
+        // childNode._tags.push("SEM_YH");
+        //
+        return childNode;
+        }
     },
+
+    ';': (parentNode, stackWrap) => {
+      //
+      // parentNode._history.push(`meet \`;\``);
+      //
+      // parentNode._tags.push("ROOT_WRAP");
+      //
+      if (stackWrap.string.length) {
+        // parentNode._stack.push(stackWrap.string);
+        stackWrap.string = "";
+      }
+      //
+      return parentNode;
+    },
+
+    ',': (parentNode, stackWrap) => {
+      //
+      // parentNode._history.push(`meet \`,\``);
+      //
+      if (stackWrap.string.length) {
+        // parentNode._stack.push(stackWrap.string);
+        stackWrap.string = "";
+      }
+      //
+      if (parentNode._tag == "LINK") {
+        return parentNode._parent;
+      }
+      //
+      return parentNode;
+    },
+
+    ':': (currentNode, stackWrap) => {
+      //
+      // currentNode._history.push(`meet \`:\``);
+      //
+      if (stackWrap.string.length) {
+        currentNode.refLabel = stackWrap.string;
+        // currentNode._stack.push(stackWrap.string);
+        stackWrap.string = "";
+      }
+      //
+      return currentNode;
+    },
+
+    '=': (parentNode, stackWrap) => {
+      //
+      // parentNode._history.push(`meet \`=\``);
+      //
+      let currentNode = newObj();
+      currentNode._parent = parentNode;
+      parentNode._children.push(currentNode);
+      //
+      currentNode._tag = "LINK";
+      // currentNode._tags.push("LINK");
+      //
+      if (stackWrap.string.length) {
+        currentNode.edge = stackWrap.string;
+        // currentNode._stack.push(stackWrap.string);
+        stackWrap.string = "";
+      }
+      //
+      return currentNode;
+    },
+
   };
 
-  const rootNode = newObj();
-  rootNode._parent = newObj();
-  rootNode._parent._types.push("ROOT_WRAP");
-  rootNode._parent._children.push(rootNode);
+  //
+  const defaultAction = (stackWrap, char)=>{
+    stackWrap.string = `${stackWrap.string}${char}`;
+  };
 
-  let currentNode = rootNode;
+  //
+  const stackWrap = {string: ""};
+
+  //
+  const wrapNode = newObj();
+  wrapNode._tag = "ROOT_WRAP";
+  // wrapNode._tags.push("ROOT_WRAP");
+
+  //
+  let currentNode = wrapNode;
   for (let ix=0; ix<defTxt.length; ix++) {
-    let currChar = defTxt[ix];
-    // let rest = defTxt.slice(ix+1, lineSplits.length);
-    if (Object.keys(actions).includes(currChar)) {
-      currentNode = actions[currChar](currentNode);
+    let char = defTxt[ix];
+    if (Object.keys(actions).includes(char)) {
+      currentNode = actions[char](currentNode, stackWrap);
     } else {
-      normalAction(currChar);
+      defaultAction(stackWrap, char);
     };
   };
-  // console.log(rootNode);
 
-  return rootNode._parent;
+  //
+  function node2obj (node) {
+    //
+    const typeMap = {
+      "ROOT_WRAP": "Group",
+      "SEM": "SemUnit",
+      "SEM_YH": "SemUnit_YH",
+      "LINK": "Link",
+      "_": null,
+    };
+
+    //
+    let obj = {};
+    obj._type = typeMap[node?._tag??"_"];
+
+    //
+    if (obj._type=="Group") {
+      if (node._children.length>1) {
+        obj.items = node._children.map(xx=>node2obj(xx));
+      } else {
+        return node2obj(node._children[0]);
+      }
+    }
+
+    //
+    if (obj._type=="SemUnit"||obj._type=="SemUnit_YH") {
+      obj.refLabel = node.refLabel;
+      obj._links = [];
+      obj._features = [];
+      node._children.forEach(xx=>{
+        let yy = node2obj(xx);
+        if (yy._type=="Link") {
+          obj._links.push(yy);
+        } else {
+          obj._features.push(yy);
+        }
+      });
+      if (!obj._links.length) {delete obj._links};
+      if (!obj._features.length) {delete obj._features};
+    }
+
+    //
+    if (obj._type=="Link") {
+      obj.edge = node.edge;
+      if (node._children.length>1) {
+        obj.node1 = {_type: "Group"};
+        obj.node1.items = node._children.map(xx=>node2obj(xx));
+      } else {
+        obj.node1 = node2obj(node._children[0]);
+      }
+    }
+
+    //
+    return obj;
+  };
+
+  return node2obj(wrapNode);
 };
 
 async function parseHowNetTxt(hnTxt) {
@@ -615,6 +509,16 @@ async function parseHowNetTxt(hnTxt) {
     };
   };
   console.log(items);
+
+  console.log(items[194280]);
+  console.log(items[81439]);
+  console.log(items[36928]);
+  console.log(items[102212]);
+
+  // let txt = JSON.stringify(items, null, 2);
+  // // console.log(txt);
+  // let file = new File([txt], `hownet.json`, {type: "text/plain;charset=utf-8"});
+  // saveAs(file);
 };
 </script>
 
