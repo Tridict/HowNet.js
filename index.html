@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HowNet.JS</title>
+  <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" rel="stylesheet">
+  <style type="text/css">
+    [v-cloak] { display: none; }
+    p, table { margin: 0.25em 0 !important;}
+    .card.table-wrap-wrap { display: flex; flex-direction: column; height: 80vh; }
+    .card-body.table-wrap { flex: 1; overflow: auto; }
+    /*.card-body.table-wrap > table { flex: 1; height: 100%; }*/
+    .card-body.table-wrap > table > thead { position: sticky; top: 0; background: rgba(233, 233, 233, 0.9999); }
+    .card-body.table-wrap > table > thead { text-align: center; vertical-align: middle; }
+    .card-body.table-wrap > table > thead > * > * {  }
+    /*.card-body.table-wrap > table > tbody { display: block; flex: 1; overflow: auto; }*/
+    .card-body--images-wrap { border: 1px solid #eee; background: #eee; overflow-x: auto; }
+    .the_card { margin: 1.5rem 0; }
+    .loadmore_card { margin: 1.5rem 0; padding: 1rem; cursor: pointer; }
+    .the_desc { white-space: pre; }
+    .the_pill { margin-right: 0.5em; }
+    .table-sm { font-size: 0.8em; }
+    .reason-type-a { color: #088; }
+    .reason-type-b { color: #880; }
+    .reason-type-c { color: #808; }
+    .reason-type-d { color: #800; }
+    .table-hover > tbody > tr:hover {
+        --bs-table-accent-bg: #ffc;
+        color: initial;
+    }
+    #main-container { margin-top: 2rem; }
+    #main-container .row { margin: 1rem 0; }
+    .text-input-slim { width: 3rem !important; }
+    .content-wrap { margin: 0.5rem 0; }
+    .content-wrap:first-child { margin: 0 0 0.5rem; }
+    .content-wrap:last-child { margin: 0.5rem 0 0; }
+    .image-cards-wrap { white-space: nowrap; }
+    .image-card { width: 240px; margin: 0 1rem 0 0; display: inline-block; }
+    .image-card:last-child { margin: 0; }
+    .image-card .card-body { padding: 0.5rem 0.5rem; }
+    .image-in-card-wrap { margin: 0 auto; width: 220px; height: 200px; display: flex; align-items: center; justify-content: center;}
+    .image-in-card { max-width: 100%; max-height: 100%; }
+  </style>
+</head>
+<body>
+<div id="app">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <a class="navbar-brand" href="#">HowNet.JS</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </div>
+</nav>
+<div class="container text-center" id="main-container" v-if="false">
+  <div class="row">
+    <div class="col">
+      <p>……加载中，请稍后……</p>
+    </div>
+  </div>
+</div>
+<div v-cloak class="container" id="main-container">
+
+
+
+<div class="row" v-if="!imported">
+  <div class="col">
+    <label class="form-label">本工具适用于 <code>HowNet2011</code> 数据。出于版权原因，本工具并不内含数据，需手动加载。<br/>请使用 Firefox/Safari/Chrome/Edge 之类的比较新型的浏览器，否则可能无法加载。</label>
+  </div>
+</div>
+
+<div class="row" v-if="!imported">
+  <form name="file-form" class="col">
+    <label class="form-label">方案1：请选择 <code>HowNet2011/Data</code> 文件夹并载入。</label>
+    <div class="input-group">
+      <input class="form-control" type="file" name="file-input" id="file-input" ref="file_input" multiple webkitdirectory="">
+      <button class="btn btn-primary" type="button" @click="onImportDataFolder">📥 载入</button>
+    </div>
+  </form>
+</div>
+
+<div class="row" v-if="!imported">
+  <form name="file-form-2" class="col">
+    <label class="form-label">方案2：只导入 <code>HowNet.txt</code> 文件，请在此选择并载入。</label>
+    <div class="input-group">
+      <input class="form-control" type="file" name="file-input-2" id="file-input-2" ref="file_input" accept="text/plain, .md, .txt, .log">
+      <button class="btn btn-primary" type="button" @click="onImportHowNetTxt">📥 载入</button>
+    </div>
+  </form>
+</div>
+
+<div class="row" v-if="!imported">
+  <form name="file-form-3" class="col">
+    <label class="form-label">方案3：如果曾经导出过 <code>HowNet.json</code> 文件，请在此选择并载入。</label>
+    <div class="input-group">
+      <input class="form-control" type="file" name="file-input-3" id="file-input-3" ref="file_input" accept=".json">
+      <button class="btn btn-primary" type="button" @click="onImportHowNetJson">📥 载入</button>
+    </div>
+  </form>
+</div>
+
+
+
+<div class="row" v-if="!imported && importError">
+  <div class="col">
+    <label class="form-label">数据载入出错！若无法解决，请联系管理员。</label>
+  </div>
+</div>
+
+
+
+<div class="row" v-if="imported">
+  <div class="col">
+  </div>
+</div>
+
+<div class="row" v-if="imported">
+  <div class="col">
+  </div>
+</div>
+
+<div class="row" v-if="imported">
+  <div class="col">
+  </div>
+</div>
+
+
+
+</div>
+<!-- <script src="https://cdn.bootcdn.net/ajax/libs/BrowserFS/2.0.0/browserfs.min.js"></script>
+<script type="text/javascript">
+  // Installs globals onto window:
+  // * Buffer
+  // * require (monkey-patches if already defined)
+  // * process
+  // You can pass in an arbitrary object if you do not wish to pollute
+  // the global namespace.
+  BrowserFS.install(window);
+  // Configures BrowserFS to use the LocalStorage file system.
+  BrowserFS.configure({
+    fs: "LocalStorage"
+  }, function(e) {
+    if (e) {
+      // An error happened!
+      throw e;
+    }
+    // Otherwise, BrowserFS is ready-to-use!
+  });
+</script> -->
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jschardet/3.0.0/jschardet.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/3.1.5/vue.global.prod.js"></script>
+<!-- <script src="./data.js"></script> -->
+<script type="text/javascript">
+let xx=3;
+</script>
+
+<script type="text/javascript">
+const HowNet2011DataFiles = {
+  "HowNet Chinese Word List": {},
+  "HowNet Definitions": {},
+  "HowNet English Word List": {},
+  "HowNet EventRoleShift": {},
+  "HowNet misused words": {},
+  "HowNet Taxonomy Antonym": {},
+  "HowNet Taxonomy Attribute": {},
+  "HowNet Taxonomy AttributeValue": {},
+  "HowNet Taxonomy Converse": {},
+  "HowNet Taxonomy Entity": {},
+  "HowNet Taxonomy Event": {},
+  "HowNet Taxonomy EventRoleAndFeatures": {},
+  "HowNet Taxonomy ProperNoun": {},
+  "HowNet Taxonomy SecondaryFeature": {},
+  "HowNet Taxonomy Sign": {},
+  "HowNet Taxonomy Syntax": {},
+  "HowNet_Sentiment_MinusFeeling_C": {},
+  "HowNet_Sentiment_MinusFeeling_E": {},
+  "HowNet_Sentiment_MinusSentiment_C": {},
+  "HowNet_Sentiment_MinusSentiment_E": {},
+  "HowNet_Sentiment_PlusFeeling_C": {},
+  "HowNet_Sentiment_PlusFeeling_E": {},
+  "HowNet_Sentiment_PlusSentiment_C": {},
+  "HowNet_Sentiment_PlusSentiment_E": {},
+  "HowNet": {},
+};
+</script>
+
+<script type="text/javascript">
+function sleep(time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+function reader_ReadFileAsText(file_wrap, options) {
+  let file = file_wrap.file;
+  options = options || {};
+  return new Promise(function(resolve, reject) {
+    let reader = new FileReader();
+
+    reader.onload = function() {
+      resolve(reader);
+    };
+    reader.onerror = reject;
+
+    if (options.accept && !new RegExp(options.accept).test(file.type)) {
+      reject({
+        code: 1,
+        msg: 'wrong file type'
+      });
+    }
+
+    if (!file.type || /^text\//i.test(file.type)) {
+      reader.readAsText(file, file_wrap.encoding);
+    } else {
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+function reader_ReadFileAsArrayBuffer(file, options) {
+  options = options || {};
+  return new Promise(function(resolve, reject) {
+    let reader = new FileReader();
+
+    reader.onload = function() {
+      resolve(reader);
+    };
+    reader.onerror = reject;
+
+    if (options.accept && !new RegExp(options.accept).test(file.type)) {
+      reject({
+        code: 1,
+        msg: 'wrong file type'
+      });
+    }
+
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function reader_ReadFileAsBinaryString(file, options) {
+  options = options || {};
+  return new Promise(function(resolve, reject) {
+    let reader = new FileReader();
+
+    reader.onload = function() {
+      resolve(reader);
+    };
+    reader.onerror = reject;
+
+    if (options.accept && !new RegExp(options.accept).test(file.type)) {
+      reject({
+        code: 1,
+        msg: 'wrong file type'
+      });
+    }
+
+    reader.readAsBinaryString(file);
+  });
+}
+</script>
+
+<script type="text/javascript">
+
+const newObj = () => {
+  return {
+    _history: ["created"],
+    _children: [],
+    _strings: [],
+    _father: null,
+  };
+};
+
+async function parseHowNetDEF(defTxt) {
+  let stringTemp = "";
+  const normalAction = (char)=>{
+    stringTemp = `${stringTemp}${char}`;
+  };
+  const actionForLeftCurlyBracket = (currentObj)=>{
+    // 一般情况
+    currentObj._history.push("find `{` >>> SEM");
+    currentObj._type = "SEM";
+    currentObj._history.push("  SEM created");
+    //
+    if (stringTemp.length) {
+      currentObj._father._strings.push(stringTemp);
+      currentObj._father._history.push(`  STRANGE ::: unsolved string 【${stringTemp}】 pushed`);
+      stringTemp = "";
+    };
+    return currentObj;
+  };
+  const actionForRightCurlyBracket = (currentObj)=>{
+    currentObj._type = "SEM";
+    if (stringTemp.length) {
+      currentObj._strings.push(stringTemp);
+      if (currentObj._children.length==0) {
+        currentObj.name = stringTemp;
+        currentObj._history.push("  named");
+      };
+      currentObj._history.push(`  push string 【${stringTemp}】`);
+      stringTemp = "";
+    };
+    currentObj._father._children.push(currentObj);
+    currentObj._father._history.push("  push child SEM");
+    currentObj._history.push("go _father");
+    currentObj._father._history.push("from child");
+    return currentObj._father;
+  };
+  const actions = {
+    '{': (currentObj)=>{
+      // 当前是「义元」，
+      // 上一位是「ROOT」或「:」或「=」或「,」或「;」或「}」，
+      // 下一位是「义元英文名」或「属性键」，期待「|」或「=」
+      //
+      // 开始刻画一个 义元，后面是 属性键值对 或 义元 开始。
+      // 如果前面连着一个另一个以 `}` 结尾的义元
+      if (currentObj._history.slice(currentObj._history.length-2)[0]==("  push child SEM")) {
+        let _father = currentObj;
+        currentObj = newObj();
+        currentObj._father = _father;
+      };
+      // 一般情况
+      return actionForLeftCurlyBracket(currentObj);
+    },
+    '|': (currentObj)=>{
+      // 当前是「义元」，
+      // 上一位是「义元英文名」，
+      // 下一位是「义元中文名」，期待「:」或「}」
+      //
+      // 义元当中。
+      currentObj._history.push("find `|` >>> SEM");
+      stringTemp = `${stringTemp}|`;
+      if (stringTemp.length==0) {
+        currentObj._history.push("  STRANGE ::: `|` without string");
+      };
+      return currentObj;
+    },
+    '}': (currentObj)=>{
+      // 当前是「义元」，
+      // 上一位是「义元中文名」或「}」，
+      // 下一位是「}」或「,」或「;」或「{」
+      //
+      // 结束刻画一个 义元
+      currentObj._history.push("find `}` >>> SEM");
+      return actionForRightCurlyBracket(currentObj);
+    },
+    ':': (currentObj)=>{
+      // 当前是「义元」，
+      // 上一位是「义元中文名」，
+      // 下一位是「{」或「属性键」，期待「|」或「=」
+      //
+      // 正在处理的是 带名称和值的 义元 。
+      // 前面是 义元名称 结束 ，后面是 属性键值对 或 义元 开始。
+      currentObj._history.push("find `:` >>> SEM");
+      if (stringTemp.length==0) {
+        currentObj._history.push("  STRANGE ::: `:` without string");
+      } else {
+        currentObj._type = "SEM";
+      };
+      //
+      currentObj._strings.push(stringTemp);
+      currentObj.name = stringTemp;
+      currentObj._history.push(`  push string 【${stringTemp}】 ::: SEM name`);
+      stringTemp = "";
+      let child = newObj();
+      child._father = currentObj;
+      currentObj._children.push(child);
+      currentObj._history.push("  push child UNK");
+      child._history.push("from father");
+      currentObj._history.push("go child");
+      return child;
+    },
+    '=': (currentObj)=>{
+      // 当前是「属性」，
+      // 上一位是「属性键」，
+      // 下一位是「{」
+      //
+      // 前面是 属性键值对的key 结束 ，后面是 属性键值对 或 义元 开始。
+      currentObj._history.push("go child");
+      let child = newObj();
+      child._father = currentObj;
+      currentObj._children.push(child);
+      child._history.push("from father");
+      child._history.push("find `=` >>> ATTR");
+      child._type = "ATTR";
+      if (stringTemp.length) {
+        child._strings.push(stringTemp);
+        child.key = stringTemp;
+        child._history.push(`  push string 【${stringTemp}】 ::: ATTR key`);
+        stringTemp = "";
+      } else {
+        child._history.push("  STRANGE ::: ATTR without key");
+      };
+      return child;
+    },
+    ',': (currentObj)=>{
+      // 前面是 属性键值对 或 义元 结束，后面是 属性键值对 或 义元 开始。
+      currentObj._history.push("find `,`");
+      if (stringTemp.length) {
+        currentObj._strings.push(stringTemp);
+        currentObj._history.push(`  push string 【${stringTemp}】 ::: STRANGE ::: strange string before \`,\``);
+        stringTemp = "";
+      };
+      if (currentObj._father?._type=="ATTR") {} else {};
+      //
+      //
+      currentObj._history.push("  wait new child");
+      let child = newObj();
+      child._father = currentObj;
+      child._history.push("from father");
+      currentObj._history.push("go child");
+      return child;
+    },
+    ';': (currentObj)=>{
+      // 前面是 义元 结束，后面是 属性键值对 或 义元 开始。
+      currentObj._history.push("find `;`");
+      if (stringTemp.length) {
+        currentObj._strings.push(stringTemp);
+        currentObj._history.push(`  push string 【${stringTemp}】 ::: STRANGE ::: strange string before \`;\``);
+        stringTemp = "";
+      };
+      currentObj._history.push("  last child >>> SEM");
+      currentObj._history.push("  wait new child ::: SEM");
+      let child = newObj();
+      child._father = currentObj;
+      child._history.push("from father");
+      currentObj._history.push("go child");
+      return child;
+    },
+    '"': (currentObj)=>{
+      // 义元 结束 或者 开始
+      currentObj._history.push("find `\"` >>> SEM");
+      if (!stringTemp.length) {
+        currentObj._history.push("find `\"` as `}`");
+        return actionForRightCurlyBracket(currentObj);
+      } else {
+        currentObj._history.push("find `\"` as `{`");
+        return actionForLeftCurlyBracket(currentObj);
+      };
+    },
+  };
+  const rootNode = newObj();
+  rootNode._father = {
+    _type: "ROOT_WRAP",
+    _history: [],
+    _children: [],
+    _strings: [],
+    _father: null,
+  };
+  let currentNode = rootNode;
+  for (let ix=0; ix<defTxt.length; ix++) {
+    let currChar = defTxt[ix];
+    // let rest = defTxt.slice(ix+1, lineSplits.length);
+    if (Object.keys(actions).includes(currChar)) {
+      currentNode = actions[currChar](currentNode);
+    } else {
+      normalAction(currChar);
+    };
+  };
+  // console.log(rootNode);
+  return rootNode;
+};
+async function parseHowNetTxt(hnTxt) {
+  const hnTxtLines = await hnTxt.split("\n");
+  // console.log(hnTxtLines);
+  const items = [];
+  let itemTemp = {};
+  for (let ix=0; ix<hnTxtLines.length; ix++) {
+    let line = {};
+    let lineSplits = hnTxtLines[ix].replace(/\r/,"").split("=");
+    [line.key, line.value] = [lineSplits[0], lineSplits.slice(1, lineSplits.length).join("=")];
+    if (line.key.length) {
+      itemTemp[line.key] = line.value;
+    };
+    if (line.key=="DEF") {
+      itemTemp.DEF_ = await parseHowNetDEF(line.value);
+      items.push(itemTemp);
+      itemTemp = {};
+    };
+  };
+  console.log(items);
+};
+</script>
+
+<script type="text/javascript">
+const RootComponent = {
+  data() {
+    return {
+      ui: {
+        task: 0,
+      },
+      imported: false,
+      importError: false,
+    }
+  },
+  computed: {
+    xxxx() {
+      return "";
+    },
+  },
+  methods: {
+    exportAllCsv() {
+      let txt = ("\n");
+      // console.log(txt);
+      let file = new File([txt], `xx.csv`, {type: "text/plain;charset=utf-8"});
+      saveAs(file);
+    },
+
+    makeData() {
+    },
+
+    async readFileAsBinaryString (fileWrap, forceEncoding) {
+      let SELF = this;
+      const reader = await reader_ReadFileAsBinaryString(fileWrap.file);
+      // .then((reader) => {
+        // console.log(reader.result);
+        fileWrap.tmp = true;
+        fileWrap.test = reader.result.slice(0, 300);
+        // return fileWrap;
+        // jschardet.detect(the_vue.fileWraps[0].buinaryString.slice(0,100));
+      // })
+      // .then((fileWrap) => {
+        let encoding = forceEncoding ?? jschardet.detect(fileWrap.test).encoding;
+        // return [encoding, fileWrap];
+      // })
+      // .then(([encoding, fileWrap]) => {
+        fileWrap.encoding = encoding;
+        fileWrap.encodingGot = true;
+        fileWrap.test = null;
+        // return fileWrap;
+      // })
+      // .catch((eee) => {
+      //   console.log(eee.error);
+      // });
+    },
+
+    async readFile (fileWrap) {
+      let SELF = this;
+      const reader = await reader_ReadFileAsText(fileWrap);
+      // .then((reader) => {
+        // console.log(reader.result);
+        fileWrap.content = reader.result;
+        fileWrap.contentLength = reader.result.length;
+        fileWrap.readed = true;
+      // })
+      // .catch((eee) => {
+      //   console.log(eee.error);
+      // });
+    },
+
+    async onImportDataFolder() {
+      const SELF = this;
+      console.log("onImportDataFolder");
+
+      const files = document.forms["file-form"]["file-input"].files;
+      const fileWraps = [];
+      for (let file of files) {
+        let fileWrap = {};
+        fileWrap.file = file;
+        fileWrap.name = file.name;
+        //
+        // fileWrap.isUsable = true;
+        // fileWrap.readed = false;
+        // fileWrap.readed2 = false;
+        fileWrap.tmp = false;
+        //
+        fileWrap.encodingGot = false;
+        fileWrap.encoding = "GB2312";
+        fileWraps.push(fileWrap);
+      };
+
+      let tasks = [];
+      for (let fileWrap of fileWraps) {
+        let task = async () => {
+          await SELF.readFileAsBinaryString(fileWrap, "GB2312");
+          await SELF.readFile(fileWrap);
+        };
+        tasks.push(task);
+      };
+      await Promise.all(tasks);
+      console.log(fileWraps);
+
+      const hnTxtWrap = fileWraps.filter(x => x.name=="HowNet.txt")[0];
+
+      await SELF.readFileAsBinaryString(hnTxtWrap)
+      await SELF.readFile(hnTxtWrap);
+
+      // console.log(hnTxtWrap);
+      SELF.imported = true;
+      SELF.importError = false;
+
+      parseHowNetTxt(hnTxtWrap.content);
+    },
+
+    async onImportHowNetTxt() {
+      const SELF = this;
+      console.log("onImportHowNetTxt");
+
+      const file = document.forms["file-form-2"]["file-input-2"].files[0];
+        let hnTxtWrap = {};
+        hnTxtWrap.file = file;
+        hnTxtWrap.name = file.name;
+        //
+        // hnTxtWrap.isUsable = true;
+        // hnTxtWrap.readed = false;
+        // hnTxtWrap.readed2 = false;
+        hnTxtWrap.tmp = false;
+        //
+        hnTxtWrap.encodingGot = false;
+        hnTxtWrap.encoding = "GB2312";
+
+      await SELF.readFileAsBinaryString(hnTxtWrap)
+      await SELF.readFile(hnTxtWrap);
+
+      // console.log(hnTxtWrap);
+      SELF.imported = true;
+      SELF.importError = false;
+
+      parseHowNetTxt(hnTxtWrap.content);
+    },
+
+  // methods end
+  },
+};
+const app = Vue.createApp(RootComponent);
+const the_vue = app.mount('#app');
+</script>
+</div>
+</body>
+</html>
